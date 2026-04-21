@@ -12,45 +12,45 @@ import com.mycompany.gestorsucursales.modelos.Producto;
  */
 public class NodoAVL {
     
-    private Producto dato;
+    private Producto producto;
     private NodoAVL izquierdo;
     private NodoAVL derecho;
-    private int fe;
-    
-    public NodoAVL(Producto dato){
-        this.dato = dato;
-        fe = 0;
+    private int altura;
+
+    NodoAVL(Producto producto) {
+            this.producto = producto;
+            this.altura = 1;
     }
 
-    public Producto getDato() {
-        return dato;
+    public Producto getProducto() {
+            return producto;
     }
 
-    public void setDato(Producto dato) {
-        this.dato = dato;
+    public void setProducto(Producto producto) {
+            this.producto = producto;
     }
 
     public NodoAVL getIzquierdo() {
-        return izquierdo;
+            return izquierdo;
     }
 
     public void setIzquierdo(NodoAVL izquierdo) {
-        this.izquierdo = izquierdo;
+            this.izquierdo = izquierdo;
     }
 
     public NodoAVL getDerecho() {
-        return derecho;
+            return derecho;
     }
 
     public void setDerecho(NodoAVL derecho) {
-        this.derecho = derecho;
+            this.derecho = derecho;
     }
 
-    public int getFe() {
-        return fe;
+    public int getAltura() {
+            return altura;
     }
 
-    public void setFe(int fe) {
-        this.fe = fe;
+    public void setAltura(int altura) {
+            this.altura = altura;
     }
 }

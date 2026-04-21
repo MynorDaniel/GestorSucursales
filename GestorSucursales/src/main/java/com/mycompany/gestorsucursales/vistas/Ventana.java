@@ -4,12 +4,14 @@
  */
 package com.mycompany.gestorsucursales.vistas;
 
+import com.mycompany.gestorsucursales.edd.avl.ArbolAVL;
 import com.mycompany.gestorsucursales.edd.cola.Cola;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaOrdenada;
 import com.mycompany.gestorsucursales.edd.pila.Pila;
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
 import com.mycompany.gestorsucursales.modelos.Producto;
+import java.util.List;
 
 /**
  *
@@ -21,6 +23,7 @@ public class Ventana extends javax.swing.JFrame {
     private final ListaEnlazadaDesordenada listaDesordenada;
     private final Pila pila;
     private final Cola cola;
+    private final ArbolAVL avl;
     
     public Ventana() {
         initComponents();
@@ -29,6 +32,7 @@ public class Ventana extends javax.swing.JFrame {
         listaDesordenada = new ListaEnlazadaDesordenada();
         pila = new Pila();
         cola = new Cola();
+        avl = new ArbolAVL();
     }
 
     @SuppressWarnings("unchecked")
@@ -90,7 +94,7 @@ public class Ventana extends javax.swing.JFrame {
 
         jLabel9.setText("Eliminar");
 
-        jLabel10.setText("Buscar");
+        jLabel10.setText("Buscar por nombre");
 
         eliminarBtn.setText("Eliminar");
         eliminarBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -223,6 +227,7 @@ public class Ventana extends javax.swing.JFrame {
             listaDesordenada.insertar(p);
             pila.insertar(p);
             cola.insertar(p);
+            avl.insertar(p);
             imprimirEDD();
             
         } catch (ProductoException e) {
@@ -236,9 +241,11 @@ public class Ventana extends javax.swing.JFrame {
             p.setCodigoBarras(eCodigoBarras.getText());
             
             listaOrdenada.eliminar(p);
+            System.out.println();
             listaDesordenada.eliminar(p);
-            pila.quitar();
+            p.setNombre(pila.quitar().getNombre());
             cola.quitar();
+            avl.eliminar(p);
             imprimirEDD();
         } catch (ProductoException ex) {
             consola.setText("Error al eliminar producto: " + ex.getMessage());
@@ -246,16 +253,18 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_eliminarBtnActionPerformed
 
     private void buscarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buscarBtnActionPerformed
-        try {
-            Producto p = new Producto();
-            p.setCodigoBarras(bCodigoBarras.getText());
-            
-            p = listaOrdenada.buscar(p);
-            
-            consola.setText(p == null ? "No encontrado" : p.toString());
-        } catch (ProductoException ex) {
-            consola.setText("Error al buscar producto: " + ex.getMessage());
+        Producto p = new Producto();
+        p.setNombre(bCodigoBarras.getText());
+
+        List<Producto> productos = avl.buscar(p);
+
+        StringBuilder sb = new StringBuilder();
+        for (Producto producto : productos) {
+            sb.append(producto.toString()).append("\n");
         }
+
+        consola.setText(p == null ? "No encontrado" : sb.toString());
+        
     }//GEN-LAST:event_buscarBtnActionPerformed
 
     private void listarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listarBtnActionPerformed
@@ -271,7 +280,9 @@ public class Ventana extends javax.swing.JFrame {
                 .append("\n").append("Pila: ")
                 .append("\n").append(pila.toString())
                 .append("\n").append("Cola: ")
-                .append("\n").append(cola.toString());
+                .append("\n").append(cola.toString())
+                .append("\n").append("AVL: ")
+                .append("\n").append(avl.toString());
         
         consola.setText(sb.toString());
     }
