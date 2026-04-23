@@ -4,6 +4,7 @@
  */
 package com.mycompany.gestorsucursales.vistas;
 
+import com.mycompany.gestorsucursales.edd.arbolb.ArbolB;
 import com.mycompany.gestorsucursales.edd.avl.ArbolAVL;
 import com.mycompany.gestorsucursales.edd.cola.Cola;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
@@ -12,6 +13,7 @@ import com.mycompany.gestorsucursales.edd.pila.Pila;
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
 import com.mycompany.gestorsucursales.modelos.Producto;
 import java.util.List;
+import javax.swing.JScrollPane;
 
 /**
  *
@@ -24,15 +26,18 @@ public class Ventana extends javax.swing.JFrame {
     private final Pila pila;
     private final Cola cola;
     private final ArbolAVL avl;
+    private final ArbolB arbolB;
     
     public Ventana() {
         initComponents();
+        jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         setLocationRelativeTo(null);
         listaOrdenada = new ListaEnlazadaOrdenada();
         listaDesordenada = new ListaEnlazadaDesordenada();
         pila = new Pila();
         cola = new Cola();
         avl = new ArbolAVL();
+        arbolB = new ArbolB(2);
     }
 
     @SuppressWarnings("unchecked")
@@ -228,6 +233,7 @@ public class Ventana extends javax.swing.JFrame {
             pila.insertar(p);
             cola.insertar(p);
             avl.insertar(p);
+            arbolB.insertar(p);
             imprimirEDD();
             
         } catch (ProductoException e) {
@@ -243,9 +249,10 @@ public class Ventana extends javax.swing.JFrame {
             listaOrdenada.eliminar(p);
             System.out.println();
             listaDesordenada.eliminar(p);
-            p.setNombre(pila.quitar().getNombre());
+            Producto pr = pila.quitar();
             cola.quitar();
-            avl.eliminar(p);
+            avl.eliminar(pr);
+            arbolB.eliminar(pr);
             imprimirEDD();
         } catch (ProductoException ex) {
             consola.setText("Error al eliminar producto: " + ex.getMessage());
@@ -282,7 +289,9 @@ public class Ventana extends javax.swing.JFrame {
                 .append("\n").append("Cola: ")
                 .append("\n").append(cola.toString())
                 .append("\n").append("AVL: ")
-                .append("\n").append(avl.toString());
+                .append("\n").append(avl.toString())
+                .append("\n").append("Arbol B: ")
+                .append("\n").append(arbolB.toString());
         
         consola.setText(sb.toString());
     }
