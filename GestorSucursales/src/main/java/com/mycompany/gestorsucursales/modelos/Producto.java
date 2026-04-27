@@ -5,6 +5,7 @@
 package com.mycompany.gestorsucursales.modelos;
 
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
+import java.util.Objects;
 
 /**
  *
@@ -85,5 +86,25 @@ public class Producto {
     @Override
     public String toString(){
         return "Producto: " + nombre + ", " + codigoBarras + ", " + categoria + ", " + fechaVencimiento + ", " + marca + ", " + precio + ", " + stock;
+    }
+    
+    @Override
+    public int hashCode(){
+        return Integer.parseInt(codigoBarras);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Producto other = (Producto) obj;
+        return Objects.equals(this.codigoBarras, other.codigoBarras);
     }
 }

@@ -7,12 +7,13 @@ package com.mycompany.gestorsucursales.vistas;
 import com.mycompany.gestorsucursales.edd.arbolb.ArbolB;
 import com.mycompany.gestorsucursales.edd.avl.ArbolAVL;
 import com.mycompany.gestorsucursales.edd.cola.Cola;
+import com.mycompany.gestorsucursales.edd.grafo.Grafo;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaOrdenada;
 import com.mycompany.gestorsucursales.edd.pila.Pila;
+import com.mycompany.gestorsucursales.edd.tablahash.TablaHash;
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
 import com.mycompany.gestorsucursales.modelos.Producto;
-import java.util.List;
 import javax.swing.JScrollPane;
 
 /**
@@ -27,6 +28,8 @@ public class Ventana extends javax.swing.JFrame {
     private final Cola cola;
     private final ArbolAVL avl;
     private final ArbolB arbolB;
+    private final TablaHash tablaHash;
+    private final Grafo grafo;
     
     public Ventana() {
         initComponents();
@@ -38,6 +41,9 @@ public class Ventana extends javax.swing.JFrame {
         cola = new Cola();
         avl = new ArbolAVL();
         arbolB = new ArbolB(2);
+        tablaHash = new TablaHash();
+        grafo = new Grafo();
+        
     }
 
     @SuppressWarnings("unchecked")
@@ -219,6 +225,9 @@ public class Ventana extends javax.swing.JFrame {
     private void insertarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertarBtnActionPerformed
         
         try {
+            
+            // verificar primero que no exista el codigo
+            
             Producto p = new Producto();
             p.setCategoria(tCategoria.getText());
             p.setCodigoBarras(tCodigoBarras.getText());
@@ -234,6 +243,7 @@ public class Ventana extends javax.swing.JFrame {
             cola.insertar(p);
             avl.insertar(p);
             arbolB.insertar(p);
+            tablaHash.insertar(p);
             imprimirEDD();
             
         } catch (ProductoException e) {
@@ -253,6 +263,7 @@ public class Ventana extends javax.swing.JFrame {
             cola.quitar();
             avl.eliminar(pr);
             arbolB.eliminar(pr);
+            tablaHash.eliminar(p);
             imprimirEDD();
         } catch (ProductoException ex) {
             consola.setText("Error al eliminar producto: " + ex.getMessage());
@@ -260,17 +271,16 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_eliminarBtnActionPerformed
 
     private void buscarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buscarBtnActionPerformed
-        Producto p = new Producto();
-        p.setNombre(bCodigoBarras.getText());
-
-        List<Producto> productos = avl.buscar(p);
-
-        StringBuilder sb = new StringBuilder();
-        for (Producto producto : productos) {
-            sb.append(producto.toString()).append("\n");
+        try {
+            Producto p = new Producto();
+            p.setCodigoBarras(bCodigoBarras.getText());
+            
+            p = tablaHash.buscar(p);
+            
+            consola.setText(p == null ? "No encontrado" : p.toString());
+        } catch (ProductoException ex) {
+            System.getLogger(Ventana.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
-
-        consola.setText(p == null ? "No encontrado" : sb.toString());
         
     }//GEN-LAST:event_buscarBtnActionPerformed
 
@@ -291,7 +301,9 @@ public class Ventana extends javax.swing.JFrame {
                 .append("\n").append("AVL: ")
                 .append("\n").append(avl.toString())
                 .append("\n").append("Arbol B: ")
-                .append("\n").append(arbolB.toString());
+                .append("\n").append(arbolB.toString())
+                .append("\n").append("Tabla hash: ")
+                .append("\n").append(tablaHash.toString());
         
         consola.setText(sb.toString());
     }
