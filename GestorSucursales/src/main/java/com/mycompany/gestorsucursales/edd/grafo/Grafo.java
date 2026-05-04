@@ -13,6 +13,10 @@ public class Grafo {
     private final TablaHash<Integer, Sucursal> sucursales;
     private final TablaHash<Integer, ListaEnlazadaDesordenada<Arista>> adyacencia;
 
+    public TablaHash<Integer, ListaEnlazadaDesordenada<Arista>> getAdyacencia() {
+        return adyacencia;
+    }
+
     public Grafo() {
         this.sucursales = new TablaHash<>();
         this.adyacencia = new TablaHash<>();

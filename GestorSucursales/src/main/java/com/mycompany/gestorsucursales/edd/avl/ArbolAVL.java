@@ -11,6 +11,10 @@ public class ArbolAVL {
 
     private NodoAVL raiz;
 
+    public NodoAVL getRaiz() {
+        return raiz;
+    }
+
     public void insertar(Producto producto) {
         if (producto == null || producto.getNombre() == null) {
             return;

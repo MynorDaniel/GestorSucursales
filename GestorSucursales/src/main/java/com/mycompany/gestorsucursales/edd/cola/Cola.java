@@ -16,6 +16,10 @@ public class Cola<T> {
     private NodoLista<T> frente;
     private NodoLista<T> ultimo;
     private int size;
+
+    public NodoLista<T> getFrente() {
+        return frente;
+    }
     
     public void insertar(T dato){
         if(dato == null) return;

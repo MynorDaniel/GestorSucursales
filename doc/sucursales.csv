@@ -1,0 +1,32 @@
+id,nombre,ubicacion,tiempo_ingreso,tiempo_traspaso,intervalo_despacho
+000,Supermercado Horizonte,Zona 3 Quetzaltenango,4,7,10
+001,Despensa El Roble,Zona 6 Quetzaltenango,3,9,13
+002,Market La Pradera,La Esperanza,5,11,17
+003,Express Las Colinas,Zona 8 Quetzaltenango,2,5,9
+004,Bodega Logística Occidente,Salcajá,6,14,22
+005,Tienda Vista Hermosa,Zona 2 Quetzaltenango,3,8,12
+006,Mini Market San Luis,Zona 1 Quetzaltenango,4,10,14
+007,Super Económico Plus,Olintepeque,5,12,18
+008,Comercial El Centro,Zona 4 Quetzaltenango,6,13,19
+009,Tienda Santa María,Zona 7 Quetzaltenango,2,6,10
+010,Market Nuevo Amanecer,San Mateo,4,9,15
+011,Distribuidora Regional,Zona 5 Quetzaltenango,7,15,23
+012,Mini Súper La Vega,Zunil,3,7,11
+013,Super Tienda El Bosque,Zona 9 Quetzaltenango,5,10,16
+014,Comercial Las Brisas,Zona 10 Quetzaltenango,4,11,15
+015,Tienda Familiar San José,La Esperanza,3,8,13
+016,Despensa Popular 2,Totonicapán,6,12,20
+017,Market El Rosario Norte,Zunil,4,11,17
+018,Super Express La Terminal,Zona 3 Quetzaltenango,2,5,9
+019,Mini Market Las Palmas,Zona 6 Quetzaltenango,3,7,12
+020,Bodega Central Norte,Olintepeque,7,16,24
+021,Distribuidora San Pedro,San Andrés Xecul,6,13,19
+022,Super Tienda Los Álamos,Almolonga,5,12,18
+023,Tienda La Cañada,Zona 2 Quetzaltenango,3,9,14
+024,Market Central Plus,Zona 1 Quetzaltenango,4,10,15
+025,Despensa Moderna 2,Salcajá,5,11,16
+026,Mini Súper El Jardín,Zunil,3,8,12
+027,Super Ahorro Norte,Olintepeque,6,14,21
+028,Tienda El Encino,San Mateo,4,10,14
+029,Comercial Nueva Esperanza,La Esperanza,5,12,18
+030,Market Vista Alegre,Zona 7 Quetzaltenango,4,9,13

@@ -4,6 +4,10 @@ import com.mycompany.gestorsucursales.modelos.Producto;
 
 public class TablaHash<K, V> {
 
+    public Entrada<K, V>[] getTabla() {
+        return t;
+    }
+
     private Entrada<K, V>[] t;
     private int n;
     private int m;

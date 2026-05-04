@@ -18,6 +18,10 @@ public class ArbolBMas {
     private NodoBMas raiz;
     private int d;
 
+    public NodoBMas getRaiz() {
+        return raiz;
+    }
+
     public ArbolBMas(int d) {
         if (d < 1) {
             throw new IllegalArgumentException("El grado d debe ser >= 1");
@@ -191,46 +195,5 @@ public class ArbolBMas {
         if (producto.getFechaVencimiento() == null) {
             throw new IllegalArgumentException("El producto debe tener fecha de vencimiento");
         }
-    }
-
-    @Override
-    public String toString() {
-        if (raiz == null) {
-            return "Árbol vacío";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        Queue<NodoBMas> cola = new ArrayDeque<>();
-        cola.offer(raiz);
-        int nivel = 0;
-
-        while (!cola.isEmpty()) {
-            int cantidad = cola.size();
-            sb.append("Nivel ").append(nivel).append(": ");
-
-            for (int i = 0; i < cantidad; i++) {
-                NodoBMas nodo = cola.poll();
-                sb.append(nodo.formatearNodo());
-                if (i < cantidad - 1) {
-                    sb.append(" ");
-                }
-
-                if (!nodo.esHoja()) {
-                    for (int j = 0; j <= nodo.getCantidadClaves(); j++) {
-                        NodoBMas hijo = nodo.getHijo(j);
-                        if (hijo != null) {
-                            cola.offer(hijo);
-                        }
-                    }
-                }
-            }
-
-            if (!cola.isEmpty()) {
-                sb.append(System.lineSeparator());
-            }
-            nivel++;
-        }
-
-        return sb.toString();
     }
 }

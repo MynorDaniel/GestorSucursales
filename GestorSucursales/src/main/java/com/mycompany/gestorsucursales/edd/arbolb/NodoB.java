@@ -18,6 +18,10 @@ public class NodoB {
     private int cantidadClaves;
     private boolean esHoja;
 
+    public Producto[] getClaves() {
+        return claves;
+    }
+
     public NodoB(int d, boolean esHoja) {
         this.claves = new Producto[2 * d + 1];
         this.d = d;

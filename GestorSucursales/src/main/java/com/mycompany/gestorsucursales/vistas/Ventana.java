@@ -4,18 +4,37 @@
  */
 package com.mycompany.gestorsucursales.vistas;
 
+import com.mycompany.gestorsucursales.edd.grafo.Criterio;
 import com.mycompany.gestorsucursales.gestion.CSV;
 import com.mycompany.gestorsucursales.edd.grafo.Grafo;
+import com.mycompany.gestorsucursales.edd.grafo.Ruta;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
 import com.mycompany.gestorsucursales.excepciones.SucursalException;
+import com.mycompany.gestorsucursales.gestion.Graphviz;
+import com.mycompany.gestorsucursales.gestion.Medicion;
+import com.mycompany.gestorsucursales.gestion.Transferencia;
 import com.mycompany.gestorsucursales.modelos.Producto;
+import com.mycompany.gestorsucursales.modelos.ProductoEventoListener;
 import com.mycompany.gestorsucursales.modelos.Sucursal;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.geom.AffineTransform;
 import java.io.File;
+import java.net.URI;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import org.apache.batik.swing.JSVGCanvas;
+import org.apache.batik.swing.svg.SVGDocumentLoaderAdapter;
+import org.apache.batik.swing.svg.SVGDocumentLoaderEvent;
 
 /**
  *
@@ -25,11 +44,16 @@ public class Ventana extends javax.swing.JFrame {
 
     private final Grafo grafo;
 
+    private final Transferencia transferencia;
+    private final ProductoEventoListener eventoListener;
+
     public Ventana() {
         initComponents();
         setLocationRelativeTo(null);
         setTitle("Gestor de Sucursales");
         grafo = new Grafo();
+        transferencia = new Transferencia();
+        eventoListener = (sucursal, producto, estado, detalle) -> appendConsola(detalle + " | Estado: " + estado + " | Producto: " + producto.getCodigoBarras());
         jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     }
 
@@ -244,13 +268,11 @@ public class Ventana extends javax.swing.JFrame {
             sucursalForm.setVisible(true);
             Sucursal sucursal = sucursalForm.getSucursal();
             grafo.agregarSucursal(sucursal);
-            consola.append("Sucursal agregada");
-            consola.append("\n");
-            consola.append(grafo.toString());
-            consola.append("\n");
+            registrarSucursal(sucursal);
+            appendConsola("Sucursal agregada");
+            appendConsola(grafo.toString());
         } catch (SucursalException ex) {
-            consola.append(ex.getMessage());
-            consola.append("\n");
+            appendConsola(ex.getMessage());
         } catch (NullPointerException e) {
             System.out.println("x");
         }
@@ -265,8 +287,7 @@ public class Ventana extends javax.swing.JFrame {
 
             if (sucursalID != null) {
                 grafo.eliminarSucursal(sucursalID);
-                consola.append("Sucursal eliminada: " + sucursalID);
-                consola.append("\n");
+                appendConsola("Sucursal eliminada: " + sucursalID);
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -286,8 +307,7 @@ public class Ventana extends javax.swing.JFrame {
 
             s.agregarProducto(p);
 
-            consola.append("Producto agregado");
-            consola.append("\n");
+            appendConsola("Producto agregado");
         } catch (NullPointerException | ProductoException e) {
             JOptionPane.showMessageDialog(null, e.getMessage());
         }
@@ -310,11 +330,9 @@ public class Ventana extends javax.swing.JFrame {
 
             if (p != null) {
                 s.eliminarProducto(p);
-                consola.append("Producto eliminado");
-                consola.append("\n");
+                appendConsola("Producto eliminado");
             } else {
-                consola.append("Producto no encontrado");
-                consola.append("\n");
+                appendConsola("Producto no encontrado");
             }
 
         }
@@ -330,23 +348,66 @@ public class Ventana extends javax.swing.JFrame {
         if (parametro != null && sucursalID != null) {
             Sucursal s = grafo.getSucursales().buscar(sucursalID);
             ListaEnlazadaDesordenada<Producto> productos = s.getArbolBMas().buscarPorCategoria(parametro);
-            
-            consola.append(productos.toString());
-            consola.append("\n");
+
+            appendConsola(productos.toString());
 
         }
     }//GEN-LAST:event_categoriaItemActionPerformed
 
     private void nombreItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nombreItemActionPerformed
-        // TODO add your handling code here:
+        ProductoIDForm idForm = new ProductoIDForm(this, true);
+        idForm.setVisible(true);
+
+        String parametro = idForm.getParametro();
+        Integer sucursalID = idForm.getSucursalID();
+
+        if (parametro != null && sucursalID != null) {
+            Sucursal s = grafo.getSucursales().buscar(sucursalID);
+            Producto p = new Producto();
+            p.setNombre(parametro);
+            p.setCodigoBarras("0000000000");
+            ListaEnlazadaDesordenada<Producto> productos = s.getAvl().buscar(p);
+
+            appendConsola(productos.toString());
+
+        }
     }//GEN-LAST:event_nombreItemActionPerformed
 
     private void fechaItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fechaItemActionPerformed
-        // TODO add your handling code here:
+        ProductoIDForm idForm = new ProductoIDForm(this, true);
+        idForm.setVisible(true);
+
+        String parametro = idForm.getParametro();
+        Integer sucursalID = idForm.getSucursalID();
+
+        if (parametro != null && sucursalID != null) {
+            Sucursal s = grafo.getSucursales().buscar(sucursalID);
+            Producto p = new Producto();
+            p.setFechaVencimiento(parametro);
+            p.setCodigoBarras("0000000000");
+            ListaEnlazadaDesordenada<Producto> productos = s.getArbolB().buscar(p);
+
+            appendConsola(productos.toString());
+
+        }
     }//GEN-LAST:event_fechaItemActionPerformed
 
     private void codigoItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_codigoItemActionPerformed
-        // TODO add your handling code here:
+        ProductoIDForm idForm = new ProductoIDForm(this, true);
+        idForm.setVisible(true);
+
+        String parametro = idForm.getParametro();
+        Integer sucursalID = idForm.getSucursalID();
+
+        if (parametro != null && sucursalID != null) {
+            Sucursal s = grafo.getSucursales().buscar(sucursalID);
+            Producto p = new Producto();
+            p.setCodigoBarras(parametro);
+            Producto productoEncontrado = s.getTablaHash().buscar(p);
+
+            appendConsola(productoEncontrado.toString());
+
+        }
     }//GEN-LAST:event_codigoItemActionPerformed
 
     private void listarPorNombreItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_listarPorNombreItemActionPerformed
@@ -360,8 +421,7 @@ public class Ventana extends javax.swing.JFrame {
                 Sucursal s = grafo.getSucursales().buscar(sucursalID);
                 String inorder = s.getAvl().inorder();
 
-                consola.append(inorder);
-                consola.append("\n");
+                appendConsola(inorder);
 
             }
         } catch (Exception e) {
@@ -370,7 +430,20 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_listarPorNombreItemActionPerformed
 
     private void compararBusquedasMenuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_compararBusquedasMenuMouseClicked
-        System.out.println("hfalshf");
+        Medicion medicion = new Medicion();
+        ListaEnlazadaDesordenada<Medicion.FilaTabla> filas = medicion.medirComparativo();
+
+        Object[][] datos = medicion.toMatriz(filas);
+        String[] columnas = Medicion.ENCABEZADOS;
+
+        JTable tabla = new JTable(datos, columnas);
+        JScrollPane scroll = new JScrollPane(tabla);
+
+        JDialog dialogo = new JDialog(this, "Comparación de búsquedas", true);
+        dialogo.getContentPane().add(scroll);
+        dialogo.setSize(800, 400);
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
     }//GEN-LAST:event_compararBusquedasMenuMouseClicked
 
     private void csvSucursalesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_csvSucursalesActionPerformed
@@ -379,10 +452,9 @@ public class Ventana extends javax.swing.JFrame {
         if (ruta != null) {
             CSV csv = new CSV();
             csv.cargarSucursales(grafo, ruta);
-            consola.append(csv.getLog());
-            consola.append("\n");
-            consola.append(grafo.toString());
-            consola.append("\n");
+            appendConsola(csv.getLog());
+            appendConsola(grafo.toString());
+            registrarSucursalesExistentes();
         }
     }//GEN-LAST:event_csvSucursalesActionPerformed
 
@@ -392,10 +464,8 @@ public class Ventana extends javax.swing.JFrame {
         if (ruta != null) {
             CSV csv = new CSV();
             csv.cargarConexiones(grafo, ruta);
-            consola.append(csv.getLog());
-            consola.append("\n");
-            consola.append(grafo.toString());
-            consola.append("\n");
+            appendConsola(csv.getLog());
+            appendConsola(grafo.toString());
         }
     }//GEN-LAST:event_csvConexionesActionPerformed
 
@@ -405,35 +475,188 @@ public class Ventana extends javax.swing.JFrame {
         if (ruta != null) {
             CSV csv = new CSV();
             csv.cargarProductos(grafo, ruta);
-            consola.append(csv.getLog());
-            consola.append("\n");
-            consola.append(grafo.toString());
-            consola.append("\n");
+            appendConsola(csv.getLog());
+            appendConsola(grafo.toString());
         }
     }//GEN-LAST:event_cargarProductosItemActionPerformed
 
     private void graphvizItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_graphvizItemActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_graphvizItemActionPerformed
+        String[] opciones = {
+            "Grafo",
+            "Lista Ordenada",
+            "Lista Desordenada",
+            "AVL",
+            "Tabla Hash",
+            "Arbol B",
+            "Arbol B+",
+            "Cola Recepcion",
+            "Cola Traspaso",
+            "Cola Envio"
+        };
 
-    private void transferirBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_transferirBtnMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_transferirBtnMouseClicked
+        String seleccion = (String) JOptionPane.showInputDialog(this,
+                "Selecciona la estructura a visualizar",
+                "Graphviz",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]);
 
-    private String seleccionarCarpeta() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        chooser.setAcceptAllFileFilterUsed(false);
-
-        int resultado = chooser.showOpenDialog(null);
-
-        if (resultado == JFileChooser.APPROVE_OPTION) {
-            File carpeta = chooser.getSelectedFile();
-            return carpeta.getAbsolutePath();
+        if (seleccion == null) {
+            return;
         }
 
-        return null;
+        Graphviz graphviz = new Graphviz();
+        String baseDir = new File("imagenes").getAbsolutePath();
+        String rutaSvg;
+
+        if ("Grafo".equals(seleccion)) {
+            rutaSvg = graphviz.generarImagenGrafo(grafo, baseDir, "grafo");
+        } else {
+            SucursalIDForm idForm = new SucursalIDForm(this, true);
+            idForm.setVisible(true);
+            Integer sucursalId = idForm.getSucursalID();
+            if (sucursalId == null) {
+                return;
+            }
+            Sucursal sucursal = grafo.getSucursales().buscar(sucursalId);
+            if (sucursal == null) {
+                JOptionPane.showMessageDialog(this, "Sucursal no existe");
+                return;
+            }
+            String nombreArchivo = seleccion.replace(" ", "_").toLowerCase() + "_" + sucursalId;
+
+            switch (seleccion) {
+                case "Lista Ordenada" ->
+                    rutaSvg = graphviz.generarImagenListaOrdenada(sucursal.getListaOrdenada(), baseDir, nombreArchivo);
+                case "Lista Desordenada" ->
+                    rutaSvg = graphviz.generarImagenListaDesordenada(sucursal.getListaDesordenada(), baseDir, nombreArchivo);
+                case "AVL" ->
+                    rutaSvg = graphviz.generarImagenArbolAVL(sucursal.getAvl(), baseDir, nombreArchivo);
+                case "Tabla Hash" ->
+                    rutaSvg = graphviz.generarImagenTablaHash(sucursal.getTablaHash(), baseDir, nombreArchivo);
+                case "Arbol B" ->
+                    rutaSvg = graphviz.generarImagenArbolB(sucursal.getArbolB(), baseDir, nombreArchivo);
+                case "Arbol B+" ->
+                    rutaSvg = graphviz.generarImagenArbolBMas(sucursal.getArbolBMas(), baseDir, nombreArchivo);
+                case "Cola Recepcion" ->
+                    rutaSvg = graphviz.generarImagenCola(sucursal.getColaRecepcion(), baseDir, nombreArchivo);
+                case "Cola Traspaso" ->
+                    rutaSvg = graphviz.generarImagenCola(sucursal.getColaTraspaso(), baseDir, nombreArchivo);
+                case "Cola Envio" ->
+                    rutaSvg = graphviz.generarImagenCola(sucursal.getColaEnvio(), baseDir, nombreArchivo);
+                default ->
+                    rutaSvg = null;
+            }
+        }
+
+        if (rutaSvg == null) {
+            JOptionPane.showMessageDialog(this, "No se pudo generar la imagen");
+            return;
+        }
+
+        mostrarSvgDialog(rutaSvg, "Graphviz - " + seleccion);
+    }//GEN-LAST:event_graphvizItemActionPerformed
+
+    private void mostrarSvgDialog(String rutaSvg, String titulo) {
+        SwingUtilities.invokeLater(() -> {
+            File archivo = new File(rutaSvg);
+            if (!archivo.exists()) {
+                JOptionPane.showMessageDialog(this, "No se encontró la imagen generada");
+                return;
+            }
+
+            JDialog dialogo = new JDialog(this, titulo, false);
+            dialogo.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            dialogo.setLayout(new BorderLayout());
+
+            JSVGCanvas canvas = new JSVGCanvas();
+            canvas.addSVGDocumentLoaderListener(new SVGDocumentLoaderAdapter() {
+                @Override
+                public void documentLoadingFailed(SVGDocumentLoaderEvent e) {
+                    System.out.println(e);
+                }
+            });
+            URI uri = archivo.toURI();
+            canvas.setURI(uri.toString());
+
+            JScrollPane scroll = new JScrollPane(canvas);
+            dialogo.add(scroll, BorderLayout.CENTER);
+
+            JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            JButton zoomIn = new JButton("+");
+            JButton zoomOut = new JButton("-");
+            final double[] zoom = {1.0};
+
+            zoomIn.addActionListener(e -> {
+                zoom[0] *= 1.25;
+                canvas.setRenderingTransform(AffineTransform.getScaleInstance(zoom[0], zoom[0]));
+            });
+            zoomOut.addActionListener(e -> {
+                zoom[0] /= 1.25;
+                canvas.setRenderingTransform(AffineTransform.getScaleInstance(zoom[0], zoom[0]));
+            });
+
+            controles.add(zoomIn);
+            controles.add(zoomOut);
+            dialogo.add(controles, BorderLayout.NORTH);
+
+            dialogo.setSize(900, 600);
+            dialogo.setLocationRelativeTo(this);
+            dialogo.setVisible(true);
+        });
     }
+
+    private void transferirBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_transferirBtnMouseClicked
+        ProductoIDForm productoForm = new ProductoIDForm(this, true);
+        productoForm.setTitle("Origen");
+        productoForm.setVisible(true);
+
+        String codigo = productoForm.getParametro();
+        Integer origenId = productoForm.getSucursalID();
+
+        if (codigo == null || origenId == null) {
+            return;
+        }
+
+        Sucursal origen = grafo.getSucursales().buscar(origenId);
+        if (origen == null) {
+            JOptionPane.showMessageDialog(null, "Sucursal origen no existe");
+            return;
+        }
+
+        SucursalIDForm destinoForm = new SucursalIDForm(this, true);
+        destinoForm.setTitle("Destino");
+        destinoForm.setVisible(true);
+        Integer destinoId = destinoForm.getSucursalID();
+        if (destinoId == null) {
+            return;
+        }
+
+        Sucursal destino = grafo.getSucursales().buscar(destinoId);
+        if (destino == null) {
+            JOptionPane.showMessageDialog(null, "Sucursal destino no existe");
+            return;
+        }
+
+        Criterio criterio = seleccionarCriterio();
+        if (criterio == null) {
+            return;
+        }
+
+        Producto pTemporal = new Producto();
+        pTemporal.setCodigoBarras(codigo);
+
+        try {
+            Ruta ruta = transferencia.transferir(grafo, origen, destino, criterio, pTemporal);
+            for (Sucursal sucursal : ruta.getCaminoSucursales()) {
+                registrarSucursal(sucursal);
+            }
+            appendConsola("Transferencia iniciada: " + ruta.toString());
+        } catch (SucursalException | ProductoException ex) {
+            JOptionPane.showMessageDialog(null, ex.getMessage());
+        }
+    }//GEN-LAST:event_transferirBtnMouseClicked
 
     private String seleccionarArchivoCSV() {
         JFileChooser chooser = new JFileChooser();
@@ -459,6 +682,38 @@ public class Ventana extends javax.swing.JFrame {
         }
 
         return null;
+    }
+
+    private void registrarSucursal(Sucursal sucursal) {
+        if (sucursal == null) {
+            return;
+        }
+        sucursal.agregarListener(eventoListener);
+    }
+
+    private void registrarSucursalesExistentes() {
+        Object[] claves = grafo.getSucursales().claves();
+        for (Object clave : claves) {
+            Sucursal s = grafo.getSucursales().buscar((Integer) clave);
+            registrarSucursal(s);
+        }
+    }
+
+    private Criterio seleccionarCriterio() {
+        Object[] opciones = {"Tiempo", "Costo"};
+        int seleccion = JOptionPane.showOptionDialog(this, "Selecciona el criterio", "Criterio",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+        if (seleccion == JOptionPane.CLOSED_OPTION) {
+            return null;
+        }
+        return seleccion == 0 ? Criterio.TIEMPO : Criterio.PESO;
+    }
+
+    private void appendConsola(String texto) {
+        SwingUtilities.invokeLater(() -> {
+            consola.append(texto);
+            consola.append("\n");
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

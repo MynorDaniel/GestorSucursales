@@ -19,5 +19,11 @@
             <version>5.12.0</version>
             <scope>compile</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-swing</artifactId>
+            <version>1.18</version>
+        </dependency>
     </dependencies>
 </project>

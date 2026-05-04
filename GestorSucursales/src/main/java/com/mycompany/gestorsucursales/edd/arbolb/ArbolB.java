@@ -4,9 +4,8 @@
  */
 package com.mycompany.gestorsucursales.edd.arbolb;
 
+import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.modelos.Producto;
-import java.util.ArrayDeque;
-import java.util.Queue;
 
 /**
  *
@@ -16,6 +15,10 @@ public class ArbolB {
 
     private NodoB raiz;
     private int d;
+
+    public NodoB getRaiz() {
+        return raiz;
+    }
 
     public ArbolB(int d) {
         if (d < 1) {
@@ -31,8 +34,20 @@ public class ArbolB {
         }
     }
 
-    public NodoB buscar(Producto clave) {
-        return raiz == null ? null : raiz.buscar(clave);
+    public ListaEnlazadaDesordenada<Producto> buscar(Producto clave) {
+        if (raiz == null) {
+            return null;
+        }
+
+        Producto[] posiblesProductos = raiz.buscar(clave).getClaves();
+        ListaEnlazadaDesordenada<Producto> productos = new ListaEnlazadaDesordenada<>();
+
+        for (Producto posibleProducto : posiblesProductos) {
+            if (posibleProducto.getFechaVencimiento().equals(clave.getFechaVencimiento())) {
+                productos.insertar(posibleProducto);
+            }
+        }
+        return productos;
     }
 
     public void insertar(Producto clave) {
@@ -79,46 +94,4 @@ public class ArbolB {
         }
     }
 
-    @Override
-    public String toString() {
-        if (raiz == null) {
-            return "Árbol vacío";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        Queue<NodoB> cola = new ArrayDeque<>();
-        cola.offer(raiz);
-        int nivel = 0;
-
-        while (!cola.isEmpty()) {
-            int cantidadNodos = cola.size();
-            sb.append("Nivel ").append(nivel).append(": ");
-
-            for (int i = 0; i < cantidadNodos; i++) {
-                NodoB nodo = cola.poll();
-                sb.append(nodo.formatearNodo());
-
-                if (i < cantidadNodos - 1) {
-                    sb.append(" ");
-                }
-
-                if (!nodo.esHoja()) {
-                    for (int j = 0; j <= nodo.getCantidadClaves(); j++) {
-                        NodoB hijo = nodo.getHijo(j);
-                        if (hijo != null) {
-                            cola.offer(hijo);
-                        }
-                    }
-                }
-            }
-
-            if (!cola.isEmpty()) {
-                sb.append(System.lineSeparator());
-            }
-
-            nivel++;
-        }
-
-        return sb.toString();
-    }
 }

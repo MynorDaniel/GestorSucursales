@@ -1,0 +1,6 @@
+digraph Lista {
+rankdir=LR;
+node [shape=box];
+label="Cola";
+labelloc=top;
+}

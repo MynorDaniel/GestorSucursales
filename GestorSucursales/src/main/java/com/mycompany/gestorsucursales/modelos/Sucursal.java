@@ -38,6 +38,10 @@ public class Sucursal implements Runnable {
     private final TablaHash<Producto, Producto> tablaHash;
     private final ArbolBMas arbolBMas;
 
+    private final ListaEnlazadaDesordenada<EntradaListener> listeners;
+    private Thread hiloProcesamiento;
+    private volatile boolean activo;
+
     public Sucursal() {
         listaOrdenada = new ListaEnlazadaOrdenada<>();
         listaDesordenada = new ListaEnlazadaDesordenada<>();
@@ -45,6 +49,9 @@ public class Sucursal implements Runnable {
         arbolB = new ArbolB(2);
         tablaHash = new TablaHash<>();
         arbolBMas = new ArbolBMas(2);
+
+        listeners = new ListaEnlazadaDesordenada<>();
+        activo = false;
 
         colaEnvio = new Cola<>();
         colaTraspaso = new Cola<>();
@@ -72,16 +79,6 @@ public class Sucursal implements Runnable {
         tablaHash.eliminar(p);
         arbolB.eliminar(p);
         arbolBMas.eliminar(p);
-    }
-    
-    private void notificar(Producto producto, Estado estado, String detalle) {
-        List<ProductoEventoListener> copia;
-        synchronized (this) {
-            copia = new ArrayList<>(listeners);
-        }
-        for (ProductoEventoListener listener : copia) {
-            listener.onEvento(this, producto, estado, detalle);
-        }
     }
 
     public ListaEnlazadaOrdenada getListaOrdenada() {
@@ -168,6 +165,37 @@ public class Sucursal implements Runnable {
         return colaRecepcion;
     }
 
+    public synchronized void agregarListener(ProductoEventoListener listener) {
+        if (listener == null || listeners.buscar(new EntradaListener(listener)) != null) {
+            return;
+        }
+        listeners.insertar(new EntradaListener(listener));
+    }
+
+    public synchronized void removerListener(ProductoEventoListener listener) {
+        if (listener == null) {
+            return;
+        }
+        listeners.eliminar(new EntradaListener(listener));
+    }
+
+    public synchronized void iniciarProcesamiento() {
+        if (activo && hiloProcesamiento != null && hiloProcesamiento.isAlive()) {
+            return;
+        }
+        activo = true;
+        hiloProcesamiento = new Thread(this, "Sucursal-" + id);
+        hiloProcesamiento.setDaemon(true);
+        hiloProcesamiento.start();
+    }
+
+    public synchronized void detenerProcesamiento() {
+        activo = false;
+        if (hiloProcesamiento != null) {
+            hiloProcesamiento.interrupt();
+        }
+    }
+
     @Override
     public String toString() {
         return "Sucursal{"
@@ -194,39 +222,51 @@ public class Sucursal implements Runnable {
 
     @Override
     public void run() {
-        while(true){
-            procesarEntrada();
-            procesarTraspaso();
-            procesarSalida();
-        }
-    }
+        while (activo) {
+            boolean trabajo = false;
+            trabajo |= procesarEntrada();
+            trabajo |= procesarTraspaso();
+            trabajo |= procesarSalida();
 
-    private void procesarEntrada() {
-        if (colaRecepcion.getSize() > 0) {
-            Producto p = colaRecepcion.quitar();
-            p.setEstado(Estado.EN_TRANSITO);
-            sleep(tiempoIngreso);
-
-            if (p.esDestinoFinal()) {
-                p.setEstado(Estado.DISPONIBLE);
-                System.out.println("Producto llegó a destino");
-            } else {
-                colaTraspaso.insertar(p);
+            if (!trabajo) {
+                sleep(1);
             }
         }
     }
 
-    private void procesarTraspaso() {
+    private boolean procesarEntrada() {
+        if (colaRecepcion.getSize() > 0) {
+            Producto p = colaRecepcion.quitar();
+            p.setEstado(Estado.EN_TRANSITO);
+            notificar(p, Estado.EN_TRANSITO, "Ingreso en sucursal " + id);
+            sleep(tiempoIngreso);
+
+            if (p.esDestinoFinal()) {
+                p.setEstado(Estado.DISPONIBLE);
+                notificar(p, Estado.DISPONIBLE, "Producto llegó a destino en sucursal " + id);
+            } else {
+                colaTraspaso.insertar(p);
+                notificar(p, Estado.EN_TRANSITO, "Producto en preparación de traspaso en sucursal " + id);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean procesarTraspaso() {
         if (colaTraspaso.getSize() > 0) {
             Producto p = colaTraspaso.quitar();
-
+            notificar(p, p.getEstado(), "Preparando envío en sucursal " + id);
             sleep(tiempoPreparacion);
 
             colaEnvio.insertar(p);
+            notificar(p, p.getEstado(), "Producto listo para despacho en sucursal " + id);
+            return true;
         }
+        return false;
     }
 
-    private void procesarSalida() {
+    private boolean procesarSalida() {
         if (colaEnvio.getSize() > 0) {
             Producto p = colaEnvio.quitar();
 
@@ -234,9 +274,11 @@ public class Sucursal implements Runnable {
 
             Sucursal siguiente = p.siguiente();
             p.avanzar();
-
+            notificar(p, p.getEstado(), "Despacho desde sucursal " + id + " hacia sucursal " + siguiente.getId());
             siguiente.getColaRecepcion().insertar(p);
+            return true;
         }
+        return false;
     }
 
     private void sleep(int segundos) {
@@ -244,6 +286,47 @@ public class Sucursal implements Runnable {
             Thread.sleep(segundos * 1000);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private void notificar(Producto producto, Estado estado, String detalle) {
+        ListaEnlazadaDesordenada<EntradaListener> copia = new ListaEnlazadaDesordenada<>();
+        synchronized (this) {
+            for (int i = 0; i < listeners.getLongitud(); i++) {
+                EntradaListener actual = listeners.get(i);
+                if (actual != null) {
+                    copia.insertar(actual);
+                }
+            }
+        }
+        for (int i = 0; i < copia.getLongitud(); i++) {
+            EntradaListener entry = copia.get(i);
+            if (entry != null && entry.listener != null) {
+                entry.listener.onEvento(this, producto, estado, detalle);
+            }
+        }
+    }
+
+    private class EntradaListener implements Comparable<EntradaListener> {
+
+        private final ProductoEventoListener listener;
+
+        private EntradaListener(ProductoEventoListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public int compareTo(EntradaListener other) {
+            if (other == null || other.listener == null) {
+                return 1;
+            }
+            if (listener == null) {
+                return -1;
+            }
+            if (listener == other.listener) {
+                return 0;
+            }
+            return Integer.compare(System.identityHashCode(listener), System.identityHashCode(other.listener));
         }
     }
 
