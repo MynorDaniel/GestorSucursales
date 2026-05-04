@@ -8,9 +8,9 @@ package com.mycompany.gestorsucursales.excepciones;
  *
  * @author mynordma
  */
-public class ProductoException extends Exception {
+public class SucursalException extends Exception {
 
-    public ProductoException(String message) {
+    public SucursalException(String message) {
         super(message);
     }
 

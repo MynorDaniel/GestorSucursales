@@ -2,9 +2,9 @@ package com.mycompany.gestorsucursales.edd.tablahash;
 
 import com.mycompany.gestorsucursales.modelos.Producto;
 
-public class TablaHash {
+public class TablaHash<K, V> {
 
-    private Producto[] t;
+    private Entrada<K, V>[] t;
     private int n;
     private int m;
 
@@ -13,17 +13,55 @@ public class TablaHash {
 
     public TablaHash() {
         m = 16;
-        t = new Producto[m];
+        t = crearTabla(m);
         n = 0;
     }
 
     /**
      * Hash por multiplicación.
      */
-    private int h(int x) {
+    private int h(long x) {
         double rx = x * R;
         double frac = rx - Math.floor(rx);
         return (int) (m * frac);
+    }
+
+    private long hashKey(K key) {
+        if (key == null) {
+            throw new IllegalArgumentException("La clave no puede ser null");
+        }
+
+        if (key instanceof Producto producto) {
+            long codigo = Long.parseLong(producto.getCodigoBarras());
+            return codigo;
+        }
+
+        return key.hashCode();
+    }
+
+    public Object[] claves() {
+        Object[] claves = new Object[n];
+        int idx = 0;
+        for (int i = 0; i < m; i++) {
+            if (t[i] != null) {
+                claves[idx++] = t[i].getClave();
+            }
+        }
+        return claves;
+    }
+
+    private boolean clavesIguales(K a, K b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+
+        if (a instanceof Producto && b instanceof Producto) {
+            Producto pa = (Producto) a;
+            Producto pb = (Producto) b;
+            return pa.getCodigoBarras().equals(pb.getCodigoBarras());
+        }
+
+        return a.equals(b);
     }
 
     private double factorCarga() {
@@ -32,42 +70,43 @@ public class TablaHash {
 
     /**
      * Inserta usando exploración lineal.
-     * @param p
+     *
+     * @param clave
+     * @param valor
      */
-    public void insertar(Producto p) {
+    public void insertar(K clave, V valor) {
         if (factorCarga() > FC_IDEAL) {
             redimensionar();
         }
 
-        int x = Integer.parseInt(p.getCodigoBarras());
-        int i = h(x);
+        int i = h(hashKey(clave));
         int inicio = i;
 
         do {
             if (t[i] == null) {
-                t[i] = p;
+                t[i] = new Entrada<>(clave, valor);
                 n++;
                 return;
             }
 
-            if (t[i].getCodigoBarras().equals(p.getCodigoBarras())) {
-                t[i] = p; // actualizar
+            if (clavesIguales(t[i].getClave(), clave)) {
+                t[i].setValor(valor); // actualizar
                 return;
             }
 
             i = (i + 1) % m;
         } while (i != inicio);
-        
+
     }
 
     /**
      * Busca usando exploración lineal.
-     * @param p
-     * @return 
+     *
+     * @param clave
+     * @return
      */
-    public Producto buscar(Producto p) {
-        int x = Integer.parseInt(p.getCodigoBarras());
-        int i = h(x);
+    public V buscar(K clave) {
+        int i = h(hashKey(clave));
         int inicio = i;
 
         do {
@@ -75,8 +114,8 @@ public class TablaHash {
                 return null;
             }
 
-            if (t[i].getCodigoBarras().equals(p.getCodigoBarras())) {
-                return t[i];
+            if (clavesIguales(t[i].getClave(), clave)) {
+                return t[i].getValor();
             }
 
             i = (i + 1) % m;
@@ -85,9 +124,8 @@ public class TablaHash {
         return null;
     }
 
-    public void eliminar(Producto p) {
-        int x = Integer.parseInt(p.getCodigoBarras());
-        int i = h(x);
+    public void eliminar(K clave) {
+        int i = h(hashKey(clave));
         int inicio = i;
 
         do {
@@ -95,7 +133,7 @@ public class TablaHash {
                 return;
             }
 
-            if (t[i].getCodigoBarras().equals(p.getCodigoBarras())) {
+            if (clavesIguales(t[i].getClave(), clave)) {
                 t[i] = null;
                 n--;
 
@@ -114,11 +152,11 @@ public class TablaHash {
         int i = inicio;
 
         while (t[i] != null) {
-            Producto temp = t[i];
+            Entrada<K, V> temp = t[i];
             t[i] = null;
             n--;
 
-            insertar(temp);
+            insertar(temp.getClave(), temp.getValor());
 
             i = (i + 1) % m;
         }
@@ -128,15 +166,15 @@ public class TablaHash {
      * Duplica el tamaño.
      */
     private void redimensionar() {
-        Producto[] vieja = t;
+        Entrada<K, V>[] vieja = t;
 
         m *= 2;
-        t = new Producto[m];
+        t = crearTabla(m);
         n = 0;
 
-        for (Producto p : vieja) {
-            if (p != null) {
-                insertar(p);
+        for (Entrada<K, V> e : vieja) {
+            if (e != null) {
+                insertar(e.getClave(), e.getValor());
             }
         }
     }
@@ -159,12 +197,16 @@ public class TablaHash {
             if (t[i] == null) {
                 sb.append("null");
             } else {
-                sb.append(t[i].getCodigoBarras());
+                sb.append(String.valueOf(t[i].getClave()));
             }
 
             sb.append(System.lineSeparator());
         }
 
         return sb.toString();
+    }
+
+    private Entrada<K, V>[] crearTabla(int capacidad) {
+        return (Entrada<K, V>[]) new Entrada[capacidad];
     }
 }

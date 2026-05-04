@@ -4,34 +4,33 @@
  */
 package com.mycompany.gestorsucursales.edd.listas;
 
-import com.mycompany.gestorsucursales.modelos.Producto;
-
 /**
  *
  * @author mynordma
+ * @param <T>
  */
-public class NodoLista {
-    
-    private Producto dato;
-    private NodoLista siguiente;
-    
-    public NodoLista(Producto dato){
+public class NodoLista<T> {
+
+    private T dato;
+    private NodoLista<T> siguiente;
+
+    public NodoLista(T dato) {
         this.dato = dato;
     }
 
-    public Producto getDato() {
+    public T getDato() {
         return dato;
     }
 
-    public void setDato(Producto dato) {
+    public void setDato(T dato) {
         this.dato = dato;
     }
 
-    public NodoLista getSiguiente() {
+    public NodoLista<T> getSiguiente() {
         return siguiente;
     }
 
-    public void setSiguiente(NodoLista siguiente) {
+    public void setSiguiente(NodoLista<T> siguiente) {
         this.siguiente = siguiente;
     }
 }

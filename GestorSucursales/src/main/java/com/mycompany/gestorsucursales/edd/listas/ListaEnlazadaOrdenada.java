@@ -4,51 +4,52 @@
  */
 package com.mycompany.gestorsucursales.edd.listas;
 
-import com.mycompany.gestorsucursales.modelos.Producto;
-
 /**
  *
  * @author mynordma
+ * @param <T>
  */
-public class ListaEnlazadaOrdenada extends ListaEnlazada {
+public class ListaEnlazadaOrdenada<T extends Comparable<T>> {
 
-    @Override
-    public void insertar(Producto dato) {
-        NodoLista nuevo = new NodoLista(dato);
-        if(primero == null || dato.getCodigoBarras().compareTo(primero.getDato().getCodigoBarras()) < 0){
+    private NodoLista<T> primero;
+    private int longitud;
+
+    public void insertar(T dato) {
+        NodoLista<T> nuevo = new NodoLista<>(dato);
+        if (primero == null || dato.compareTo(primero.getDato()) < 0) {
             nuevo.setSiguiente(primero);
             primero = nuevo;
             longitud++;
             return;
         }
-        NodoLista actual = primero;
+        NodoLista<T> actual = primero;
 
-        while (actual.getSiguiente() != null &&
-            dato.getCodigoBarras().compareTo(actual.getSiguiente().getDato().getCodigoBarras()) > 0) {
+        while (actual.getSiguiente() != null
+                && dato.compareTo(actual.getSiguiente().getDato()) > 0) {
             actual = actual.getSiguiente();
         }
 
         nuevo.setSiguiente(actual.getSiguiente());
         actual.setSiguiente(nuevo);
-        
+
         longitud++;
     }
 
-    @Override
-    public void eliminar(Producto dato) {
-        if (primero == null) return;
+    public void eliminar(T dato) {
+        if (primero == null) {
+            return;
+        }
 
-        if (primero.getDato().getCodigoBarras().equals(dato.getCodigoBarras())) {
+        if (primero.getDato().compareTo(dato) == 0) {
             primero = primero.getSiguiente();
             longitud--;
             return;
         }
 
-        NodoLista actual = primero;
+        NodoLista<T> actual = primero;
 
         while (actual.getSiguiente() != null) {
-            int cmp = actual.getSiguiente().getDato().getCodigoBarras()
-                    .compareTo(dato.getCodigoBarras());
+            int cmp = actual.getSiguiente().getDato().compareTo(dato);
 
             if (cmp == 0) {
                 actual.setSiguiente(actual.getSiguiente().getSiguiente());
@@ -60,16 +61,14 @@ public class ListaEnlazadaOrdenada extends ListaEnlazada {
 
             actual = actual.getSiguiente();
         }
-        
+
     }
 
-    @Override
-    public Producto buscar(Producto dato) {
-        NodoLista actual = primero;
+    public T buscar(T dato) {
+        NodoLista<T> actual = primero;
 
         while (actual != null) {
-            int cmp = actual.getDato().getCodigoBarras()
-                    .compareTo(dato.getCodigoBarras());
+            int cmp = actual.getDato().compareTo(dato);
 
             if (cmp == 0) {
                 return actual.getDato();
@@ -82,5 +81,52 @@ public class ListaEnlazadaOrdenada extends ListaEnlazada {
 
         return null;
     }
-    
+
+    public NodoLista getPrimero() {
+        return primero;
+    }
+
+    public void setPrimero(NodoLista primero) {
+        this.primero = primero;
+    }
+
+    public int getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(int longitud) {
+        this.longitud = longitud;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Lista de tamaño: ").append(longitud).append("\n");
+        NodoLista indice;
+        for (indice = primero; indice != null; indice = indice.getSiguiente()) {
+            if (indice.getDato() != null) {
+                sb.append(indice.getDato().toString()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public boolean isEmpty() {
+        return longitud == 0;
+    }
+
+    public int size() {
+        return longitud;
+    }
+
+    public T extraerPrimero() {
+        if (primero == null) {
+            return null;
+        }
+        T dato = primero.getDato();
+        primero = primero.getSiguiente();
+        longitud--;
+        return dato;
+    }
+
 }

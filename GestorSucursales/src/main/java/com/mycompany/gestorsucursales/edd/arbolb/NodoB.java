@@ -11,6 +11,7 @@ import com.mycompany.gestorsucursales.modelos.Producto;
  * @author mynordma
  */
 public class NodoB {
+
     private Producto[] claves;
     private int d;
     private NodoB[] hijos;
@@ -24,13 +25,13 @@ public class NodoB {
         this.cantidadClaves = 0;
         this.esHoja = esHoja;
     }
-    
-    private int compararProductos(Producto p1, Producto p2){
+
+    private int compararProductos(Producto p1, Producto p2) {
         int cmpFecha = p1.getFechaVencimiento().compareTo(p2.getFechaVencimiento());
-        if(cmpFecha != 0){
+        if (cmpFecha != 0) {
             return cmpFecha;
         }
-        
+
         return p1.getCodigoBarras().compareTo(p2.getCodigoBarras());
     }
 

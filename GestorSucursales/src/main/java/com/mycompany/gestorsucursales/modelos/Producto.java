@@ -5,14 +5,17 @@
 package com.mycompany.gestorsucursales.modelos;
 
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 /**
  *
  * @author mynordma
  */
-public class Producto {
-    
+public class Producto implements Comparable<Producto> {
+
     private String nombre;
     private String codigoBarras;
     private String categoria;
@@ -20,6 +23,43 @@ public class Producto {
     private String marca;
     private double precio;
     private int stock;
+
+    public void validar() throws ProductoException {
+        if (!esFechaISO(fechaVencimiento)) {
+            throw new ProductoException("Error al crear producto: formato de fecha invalido");
+        }
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new ProductoException("Error al crear producto: nombre vacio");
+        }
+        if (codigoBarras == null || codigoBarras.trim().isEmpty()) {
+            throw new ProductoException("Error al crear producto: codigo de barras vacio");
+        }
+        if(codigoBarras.trim().length() != 10){
+            throw new ProductoException("El codigo debe tener 10 caracteres");
+        }
+        if (categoria == null || categoria.trim().isEmpty()) {
+            throw new ProductoException("Error al crear producto: categoria vacia");
+        }
+        if (marca == null || marca.trim().isEmpty()) {
+            throw new ProductoException("Error al crear producto: marca vacia");
+        }
+        if (precio < 0 || stock < 0) {
+            throw new ProductoException("Error al crear producto: precio o stock negativo");
+        }
+    }
+
+    private boolean esFechaISO(String texto) {
+        if (texto == null) {
+            return false;
+        }
+
+        try {
+            LocalDate.parse(texto, DateTimeFormatter.ISO_LOCAL_DATE);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
 
     public Producto() {
     }
@@ -36,10 +76,7 @@ public class Producto {
         return codigoBarras;
     }
 
-    public void setCodigoBarras(String codigoBarras) throws ProductoException {
-        
-        if(codigoBarras.trim().length() != 10) throw new ProductoException("Código de barras debe tener 10 carácteres");
-        
+    public void setCodigoBarras(String codigoBarras) {
         this.codigoBarras = codigoBarras;
     }
 
@@ -82,14 +119,14 @@ public class Producto {
     public void setStock(int stock) {
         this.stock = stock;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return "Producto: " + nombre + ", " + codigoBarras + ", " + categoria + ", " + fechaVencimiento + ", " + marca + ", " + precio + ", " + stock;
     }
-    
+
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return Integer.parseInt(codigoBarras);
     }
 
@@ -106,5 +143,13 @@ public class Producto {
         }
         final Producto other = (Producto) obj;
         return Objects.equals(this.codigoBarras, other.codigoBarras);
+    }
+
+    @Override
+    public int compareTo(Producto other) {
+        if (other == null) {
+            return 1;
+        }
+        return this.getCodigoBarras().compareTo(other.getCodigoBarras());
     }
 }

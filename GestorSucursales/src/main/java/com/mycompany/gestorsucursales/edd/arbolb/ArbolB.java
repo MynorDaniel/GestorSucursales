@@ -13,6 +13,7 @@ import java.util.Queue;
  * @author mynordma
  */
 public class ArbolB {
+
     private NodoB raiz;
     private int d;
 
@@ -121,4 +122,3 @@ public class ArbolB {
         return sb.toString();
     }
 }
-

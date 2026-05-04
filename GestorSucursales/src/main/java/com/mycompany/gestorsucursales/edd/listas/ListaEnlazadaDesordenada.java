@@ -4,57 +4,102 @@
  */
 package com.mycompany.gestorsucursales.edd.listas;
 
-import com.mycompany.gestorsucursales.modelos.Producto;
-
 /**
  *
  * @author mynordma
+ * @param <T>
  */
-public class ListaEnlazadaDesordenada extends ListaEnlazada {
+public class ListaEnlazadaDesordenada<T extends Comparable<T>> {
 
-    @Override
-    public void insertar(Producto dato) {
-        NodoLista nuevo = new NodoLista(dato);
+    private NodoLista<T> primero;
+    private int longitud;
+
+    public void insertar(T dato) {
+        NodoLista<T> nuevo = new NodoLista<>(dato);
         nuevo.setSiguiente(primero);
         primero = nuevo;
         longitud++;
     }
 
-    @Override
-    public void eliminar(Producto dato) {
-        NodoLista actual, anterior;
+    public void eliminar(T dato) {
+        NodoLista<T> actual, anterior;
         boolean encontrado = false;
         actual = primero;
         anterior = null;
-        
-        while((actual != null) && !encontrado){
-            encontrado = (actual.getDato() == null) ? dato == null : actual.getDato().getCodigoBarras().equals(dato.getCodigoBarras());
-            if(!encontrado){
+
+        while ((actual != null) && !encontrado) {
+            encontrado = (actual.getDato() == null) ? dato == null : actual.getDato().compareTo(dato) == 0;
+            if (!encontrado) {
                 anterior = actual;
                 actual = actual.getSiguiente();
             }
         }
-        
-        if(actual != null){
-            if(actual == primero){
+
+        if (actual != null) {
+            if (actual == primero) {
                 primero = actual.getSiguiente();
-            }else{
+            } else {
                 anterior.setSiguiente(actual.getSiguiente());
             }
             longitud--;
         }
-        
+
     }
 
-    @Override
-    public Producto buscar(Producto dato) {
-        NodoLista indice;
-        for(indice = primero; indice != null; indice = indice.getSiguiente()){
-            if(indice.getDato() == null ? dato == null : indice.getDato().getCodigoBarras().equals(dato.getCodigoBarras())){
+    public T buscar(T dato) {
+        NodoLista<T> indice;
+        for (indice = primero; indice != null; indice = indice.getSiguiente()) {
+            if (indice.getDato() == null ? dato == null : indice.getDato().compareTo(dato) == 0) {
                 return indice.getDato();
             }
         }
         return null;
     }
-    
+
+    public NodoLista getPrimero() {
+        return primero;
+    }
+
+    public void setPrimero(NodoLista primero) {
+        this.primero = primero;
+    }
+
+    public int getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(int longitud) {
+        this.longitud = longitud;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Lista de tamaño: ").append(longitud).append("\n");
+        NodoLista indice;
+        for (indice = primero; indice != null; indice = indice.getSiguiente()) {
+            if (indice.getDato() != null) {
+                sb.append(indice.getDato().toString()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public T get(int indice) {
+        if (indice < 0 || indice >= longitud) {
+            throw new IndexOutOfBoundsException("Índice fuera de rango: " + indice);
+        }
+
+        NodoLista<T> actual = primero;
+        int i = 0;
+        while (actual != null) {
+            if (i == indice) {
+                return actual.getDato();
+            }
+            actual = actual.getSiguiente();
+            i++;
+        }
+        return null;
+    }
+
 }

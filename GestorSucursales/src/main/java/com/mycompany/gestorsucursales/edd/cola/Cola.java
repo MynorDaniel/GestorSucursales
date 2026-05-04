@@ -5,21 +5,21 @@
 package com.mycompany.gestorsucursales.edd.cola;
 
 import com.mycompany.gestorsucursales.edd.listas.NodoLista;
-import com.mycompany.gestorsucursales.modelos.Producto;
 
 /**
  *
  * @author mynordma
+ * @param <T>
  */
-public class Cola {
+public class Cola<T> {
     
-    private NodoLista frente;
-    private NodoLista ultimo;
+    private NodoLista<T> frente;
+    private NodoLista<T> ultimo;
     private int size;
     
-    public void insertar(Producto p){
-        if(p == null) return;
-        NodoLista nuevo = new NodoLista(p);
+    public void insertar(T dato){
+        if(dato == null) return;
+        NodoLista<T> nuevo = new NodoLista<>(dato);
         if(frente == null){
             frente = nuevo;
         }else{
@@ -30,11 +30,11 @@ public class Cola {
         size++;
     }
     
-    public Producto quitar(){
+    public T quitar(){
         if(frente == null){
             return null;
         }else{
-            Producto aux = frente.getDato();
+            T aux = frente.getDato();
             frente = frente.getSiguiente();
             
             if(frente == null) ultimo = null;
@@ -44,7 +44,7 @@ public class Cola {
         }
     }
     
-    public Producto verCima(){
+    public T verCima(){
         if(frente == null){
             return null;
         }else{
@@ -57,10 +57,10 @@ public class Cola {
         StringBuilder sb = new StringBuilder();
         sb.append("Cola de tamaño: " ).append(size).append("\n");
         
-        NodoLista actual = frente;
+        NodoLista<T> actual = frente;
 
         while (actual != null) {
-            sb.append(actual.getDato().toString()).append("\n");
+            sb.append(String.valueOf(actual.getDato())).append("\n");
             actual = actual.getSiguiente();
         }
 

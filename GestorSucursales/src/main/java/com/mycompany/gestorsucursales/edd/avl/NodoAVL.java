@@ -11,46 +11,46 @@ import com.mycompany.gestorsucursales.modelos.Producto;
  * @author mynordma
  */
 public class NodoAVL {
-    
+
     private Producto producto;
     private NodoAVL izquierdo;
     private NodoAVL derecho;
     private int altura;
 
     NodoAVL(Producto producto) {
-            this.producto = producto;
-            this.altura = 1;
+        this.producto = producto;
+        this.altura = 1;
     }
 
     public Producto getProducto() {
-            return producto;
+        return producto;
     }
 
     public void setProducto(Producto producto) {
-            this.producto = producto;
+        this.producto = producto;
     }
 
     public NodoAVL getIzquierdo() {
-            return izquierdo;
+        return izquierdo;
     }
 
     public void setIzquierdo(NodoAVL izquierdo) {
-            this.izquierdo = izquierdo;
+        this.izquierdo = izquierdo;
     }
 
     public NodoAVL getDerecho() {
-            return derecho;
+        return derecho;
     }
 
     public void setDerecho(NodoAVL derecho) {
-            this.derecho = derecho;
+        this.derecho = derecho;
     }
 
     public int getAltura() {
-            return altura;
+        return altura;
     }
 
     public void setAltura(int altura) {
-            this.altura = altura;
+        this.altura = altura;
     }
 }

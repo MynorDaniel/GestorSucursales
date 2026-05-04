@@ -5,59 +5,61 @@
 package com.mycompany.gestorsucursales.edd.pila;
 
 import com.mycompany.gestorsucursales.edd.listas.NodoLista;
-import com.mycompany.gestorsucursales.modelos.Producto;
 
 /**
  *
  * @author mynordma
+ * @param <T>
  */
-public class Pila {
-    
-    private NodoLista cima;
+public class Pila<T> {
+
+    private NodoLista<T> cima;
     private int size;
-    
-    public void insertar(Producto p){
-        if(p == null) return;
-        NodoLista nuevo = new NodoLista(p);
+
+    public void insertar(T dato) {
+        if (dato == null) {
+            return;
+        }
+        NodoLista<T> nuevo = new NodoLista<>(dato);
         nuevo.setSiguiente(cima);
         cima = nuevo;
         size++;
     }
-    
-    public Producto quitar(){
-        if(cima == null){
+
+    public T quitar() {
+        if (cima == null) {
             return null;
-        }else{
-            Producto aux = cima.getDato();
+        } else {
+            T aux = cima.getDato();
             cima = cima.getSiguiente();
             size--;
             return aux;
         }
     }
-    
-    public Producto verCima(){
-        if(cima == null){
+
+    public T verCima() {
+        if (cima == null) {
             return null;
-        }else{
+        } else {
             return cima.getDato();
         }
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Pila de tamaño: " ).append(size).append("\n");
-        
-        NodoLista actual = cima;
+        sb.append("Pila de tamaño: ").append(size).append("\n");
+
+        NodoLista<T> actual = cima;
 
         while (actual != null) {
-            sb.append(actual.getDato().toString()).append("\n");
+            sb.append(String.valueOf(actual.getDato())).append("\n");
             actual = actual.getSiguiente();
         }
 
         return sb.toString();
     }
-    
+
     public int getSize() {
         return size;
     }
