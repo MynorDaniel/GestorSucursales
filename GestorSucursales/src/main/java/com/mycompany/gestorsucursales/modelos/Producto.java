@@ -23,6 +23,39 @@ public class Producto implements Comparable<Producto> {
     private String marca;
     private double precio;
     private int stock;
+    
+    private Estado estado;
+    
+    private Sucursal[] ruta;
+    private int indiceRuta;
+
+    public Sucursal siguiente() {
+        return ruta[indiceRuta + 1];
+    }
+
+    public void avanzar() {
+        indiceRuta++;
+    }
+
+    public Sucursal[] getRuta() {
+        return ruta;
+    }
+
+    public void setRuta(Sucursal[] ruta) {
+        this.ruta = ruta;
+    }
+
+    public int getIndiceRuta() {
+        return indiceRuta;
+    }
+
+    public void setIndiceRuta(int indiceRuta) {
+        this.indiceRuta = indiceRuta;
+    }
+
+    public boolean esDestinoFinal() {
+        return indiceRuta == ruta.length - 1;
+    }
 
     public void validar() throws ProductoException {
         if (!esFechaISO(fechaVencimiento)) {
@@ -62,6 +95,7 @@ public class Producto implements Comparable<Producto> {
     }
 
     public Producto() {
+        estado = Estado.DISPONIBLE;
     }
 
     public String getNombre() {
@@ -118,6 +152,14 @@ public class Producto implements Comparable<Producto> {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public Estado getEstado() {
+        return estado;
+    }
+
+    public void setEstado(Estado estado) {
+        this.estado = estado;
     }
 
     @Override

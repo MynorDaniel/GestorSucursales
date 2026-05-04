@@ -27,6 +27,35 @@ public class Grafo {
         adyacencia.insertar(sucursal.getId(), new ListaEnlazadaDesordenada<>());
     }
 
+    public boolean eliminarSucursal(int id) {
+        if (sucursales.buscar(id) == null) {
+            return false;
+        }
+
+        adyacencia.eliminar(id);
+        sucursales.eliminar(id);
+
+        Object[] claves = sucursales.claves();
+        for (Object clave : claves) {
+            int origen = (Integer) clave;
+            ListaEnlazadaDesordenada<Arista> lista = adyacencia.buscar(origen);
+            if (lista == null) {
+                continue;
+            }
+            int indice = 0;
+            while (indice < lista.getLongitud()) {
+                Arista arista = lista.get(indice);
+                if (arista != null && arista.getDestino() == id) {
+                    lista.eliminar(arista);
+                    continue;
+                }
+                indice++;
+            }
+        }
+
+        return true;
+    }
+
     public boolean contieneSucursal(int id) {
         return sucursales.buscar(id) != null;
     }
@@ -216,7 +245,7 @@ public class Grafo {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Matriz de adyacencia (peso/tiempo)").append(System.lineSeparator());
+        sb.append("Matriz de adyacencia (tiempo/costo)").append(System.lineSeparator());
         sb.append("    ");
         for (int id : ids) {
             sb.append(String.format("%8s", id));
@@ -227,7 +256,7 @@ public class Grafo {
             sb.append(String.format("%4s", ids[i]));
             for (int j = 0; j < ids.length; j++) {
                 if (existe[i][j]) {
-                    sb.append(String.format("%8s", formatoPesoTiempo(pesos[i][j], tiempos[i][j])));
+                    sb.append(String.format("%8s", formatoPesoTiempo(tiempos[i][j], pesos[i][j])));
                 } else {
                     sb.append(String.format("%8s", "-"));
                 }

@@ -6,7 +6,6 @@ package com.mycompany.gestorsucursales;
 import com.mycompany.gestorsucursales.edd.grafo.*;
 import com.mycompany.gestorsucursales.modelos.Sucursal;
 import com.mycompany.gestorsucursales.vistas.Ventana;
-import com.mycompany.gestorsucursales.vistas.Ventana01;
 
 /**
  *

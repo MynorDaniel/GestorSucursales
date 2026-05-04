@@ -4,14 +4,18 @@
  */
 package com.mycompany.gestorsucursales.vistas;
 
+import com.mycompany.gestorsucursales.gestion.CSV;
 import com.mycompany.gestorsucursales.edd.grafo.Grafo;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.excepciones.ProductoException;
 import com.mycompany.gestorsucursales.excepciones.SucursalException;
 import com.mycompany.gestorsucursales.modelos.Producto;
 import com.mycompany.gestorsucursales.modelos.Sucursal;
+import java.io.File;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -54,9 +58,10 @@ public class Ventana extends javax.swing.JFrame {
         csvProductos = new javax.swing.JMenu();
         csvSucursales = new javax.swing.JMenuItem();
         csvConexiones = new javax.swing.JMenuItem();
-        jMenuItem4 = new javax.swing.JMenuItem();
+        cargarProductosItem = new javax.swing.JMenuItem();
         jMenu1 = new javax.swing.JMenu();
         graphvizItem = new javax.swing.JMenuItem();
+        transferirBtn = new javax.swing.JMenu();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -181,13 +186,13 @@ public class Ventana extends javax.swing.JFrame {
         });
         csvProductos.add(csvConexiones);
 
-        jMenuItem4.setText("Productos");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+        cargarProductosItem.setText("Productos");
+        cargarProductosItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
+                cargarProductosItemActionPerformed(evt);
             }
         });
-        csvProductos.add(jMenuItem4);
+        csvProductos.add(cargarProductosItem);
 
         jMenuBar1.add(csvProductos);
 
@@ -203,6 +208,14 @@ public class Ventana extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu1);
 
+        transferirBtn.setText("Transferir Producto");
+        transferirBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                transferirBtnMouseClicked(evt);
+            }
+        });
+        jMenuBar1.add(transferirBtn);
+
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -216,9 +229,9 @@ public class Ventana extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(272, 272, 272)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 525, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(56, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 741, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -232,6 +245,7 @@ public class Ventana extends javax.swing.JFrame {
             Sucursal sucursal = sucursalForm.getSucursal();
             grafo.agregarSucursal(sucursal);
             consola.append("Sucursal agregada");
+            consola.append("\n");
             consola.append(grafo.toString());
             consola.append("\n");
         } catch (SucursalException ex) {
@@ -243,7 +257,20 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_agregarSucursalItemActionPerformed
 
     private void eliminarSucursalItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eliminarSucursalItemActionPerformed
+        try {
+            SucursalIDForm idForm = new SucursalIDForm(this, true);
+            idForm.setVisible(true);
 
+            Integer sucursalID = idForm.getSucursalID();
+
+            if (sucursalID != null) {
+                grafo.eliminarSucursal(sucursalID);
+                consola.append("Sucursal eliminada: " + sucursalID);
+                consola.append("\n");
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }//GEN-LAST:event_eliminarSucursalItemActionPerformed
 
     private void agregarProductoItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_agregarProductoItemActionPerformed
@@ -294,7 +321,20 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_eliminarProductoItemActionPerformed
 
     private void categoriaItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_categoriaItemActionPerformed
-        // TODO add your handling code here:
+        ProductoIDForm idForm = new ProductoIDForm(this, true);
+        idForm.setVisible(true);
+
+        String parametro = idForm.getParametro();
+        Integer sucursalID = idForm.getSucursalID();
+
+        if (parametro != null && sucursalID != null) {
+            Sucursal s = grafo.getSucursales().buscar(sucursalID);
+            ListaEnlazadaDesordenada<Producto> productos = s.getArbolBMas().buscarPorCategoria(parametro);
+            
+            consola.append(productos.toString());
+            consola.append("\n");
+
+        }
     }//GEN-LAST:event_categoriaItemActionPerformed
 
     private void nombreItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nombreItemActionPerformed
@@ -334,24 +374,97 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_compararBusquedasMenuMouseClicked
 
     private void csvSucursalesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_csvSucursalesActionPerformed
-        // TODO add your handling code here:
+        String ruta = seleccionarArchivoCSV();
+
+        if (ruta != null) {
+            CSV csv = new CSV();
+            csv.cargarSucursales(grafo, ruta);
+            consola.append(csv.getLog());
+            consola.append("\n");
+            consola.append(grafo.toString());
+            consola.append("\n");
+        }
     }//GEN-LAST:event_csvSucursalesActionPerformed
 
     private void csvConexionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_csvConexionesActionPerformed
-        // TODO add your handling code here:
+        String ruta = seleccionarArchivoCSV();
+
+        if (ruta != null) {
+            CSV csv = new CSV();
+            csv.cargarConexiones(grafo, ruta);
+            consola.append(csv.getLog());
+            consola.append("\n");
+            consola.append(grafo.toString());
+            consola.append("\n");
+        }
     }//GEN-LAST:event_csvConexionesActionPerformed
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
+    private void cargarProductosItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargarProductosItemActionPerformed
+        String ruta = seleccionarArchivoCSV();
+
+        if (ruta != null) {
+            CSV csv = new CSV();
+            csv.cargarProductos(grafo, ruta);
+            consola.append(csv.getLog());
+            consola.append("\n");
+            consola.append(grafo.toString());
+            consola.append("\n");
+        }
+    }//GEN-LAST:event_cargarProductosItemActionPerformed
 
     private void graphvizItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_graphvizItemActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_graphvizItemActionPerformed
 
+    private void transferirBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_transferirBtnMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_transferirBtnMouseClicked
+
+    private String seleccionarCarpeta() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        int resultado = chooser.showOpenDialog(null);
+
+        if (resultado == JFileChooser.APPROVE_OPTION) {
+            File carpeta = chooser.getSelectedFile();
+            return carpeta.getAbsolutePath();
+        }
+
+        return null;
+    }
+
+    private String seleccionarArchivoCSV() {
+        JFileChooser chooser = new JFileChooser();
+
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        FileNameExtensionFilter filtro
+                = new FileNameExtensionFilter("Archivos CSV (*.csv)", "csv");
+        chooser.setFileFilter(filtro);
+
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        int resultado = chooser.showOpenDialog(null);
+
+        if (resultado == JFileChooser.APPROVE_OPTION) {
+            File archivo = chooser.getSelectedFile();
+
+            if (!archivo.getName().toLowerCase().endsWith(".csv")) {
+                return null;
+            }
+
+            return archivo.getAbsolutePath();
+        }
+
+        return null;
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem agregarProductoItem;
     private javax.swing.JMenuItem agregarSucursalItem;
+    private javax.swing.JMenuItem cargarProductosItem;
     private javax.swing.JMenuItem categoriaItem;
     private javax.swing.JMenuItem codigoItem;
     private javax.swing.JMenu compararBusquedasMenu;
@@ -368,11 +481,11 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JMenuItem listarPorNombreItem;
     private javax.swing.JMenuItem nombreItem;
     private javax.swing.JMenu productosMenu;
     private javax.swing.JMenu sucursalesMenu;
+    private javax.swing.JMenu transferirBtn;
     // End of variables declaration//GEN-END:variables
 }

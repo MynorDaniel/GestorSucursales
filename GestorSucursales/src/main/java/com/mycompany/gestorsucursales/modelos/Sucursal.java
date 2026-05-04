@@ -18,7 +18,7 @@ import com.mycompany.gestorsucursales.excepciones.SucursalException;
  *
  * @author mynordma
  */
-public class Sucursal {
+public class Sucursal implements Runnable {
 
     private int id;
     private String nombre;
@@ -26,7 +26,10 @@ public class Sucursal {
     private int tiempoIngreso;
     private int tiempoPreparacion;
     private int intervaloDespacho;
-    private Cola colaDespacho;
+
+    private final Cola<Producto> colaEnvio;
+    private final Cola<Producto> colaTraspaso;
+    private final Cola<Producto> colaRecepcion;
 
     private final ListaEnlazadaOrdenada<Producto> listaOrdenada;
     private final ListaEnlazadaDesordenada<Producto> listaDesordenada;
@@ -42,16 +45,24 @@ public class Sucursal {
         arbolB = new ArbolB(2);
         tablaHash = new TablaHash<>();
         arbolBMas = new ArbolBMas(2);
+
+        colaEnvio = new Cola<>();
+        colaTraspaso = new Cola<>();
+        colaRecepcion = new Cola<>();
     }
 
     public void agregarProducto(Producto p) throws ProductoException {
-        if(tablaHash.buscar(p) != null) throw new ProductoException("Codigo de barras repetido: " + p.getCodigoBarras());
+        if (tablaHash.buscar(p) != null) {
+            throw new ProductoException("Codigo de barras repetido: " + p.getCodigoBarras());
+        }
         listaOrdenada.insertar(p);
         listaDesordenada.insertar(p);
         avl.insertar(p);
         tablaHash.insertar(p, p);
         arbolB.insertar(p);
         arbolBMas.insertar(p);
+
+        //colaRecepcion.insertar(p);
     }
 
     public void eliminarProducto(Producto p) {
@@ -61,6 +72,16 @@ public class Sucursal {
         tablaHash.eliminar(p);
         arbolB.eliminar(p);
         arbolBMas.eliminar(p);
+    }
+    
+    private void notificar(Producto producto, Estado estado, String detalle) {
+        List<ProductoEventoListener> copia;
+        synchronized (this) {
+            copia = new ArrayList<>(listeners);
+        }
+        for (ProductoEventoListener listener : copia) {
+            listener.onEvento(this, producto, estado, detalle);
+        }
     }
 
     public ListaEnlazadaOrdenada getListaOrdenada() {
@@ -135,12 +156,16 @@ public class Sucursal {
         this.intervaloDespacho = intervaloDespacho;
     }
 
-    public Cola getColaDespacho() {
-        return colaDespacho;
+    public Cola<Producto> getColaEnvio() {
+        return colaEnvio;
     }
 
-    public void setColaDespacho(Cola colaDespacho) {
-        this.colaDespacho = colaDespacho;
+    public Cola<Producto> getColaTraspaso() {
+        return colaTraspaso;
+    }
+
+    public Cola<Producto> getColaRecepcion() {
+        return colaRecepcion;
     }
 
     @Override
@@ -164,6 +189,61 @@ public class Sucursal {
         }
         if (tiempoIngreso < 0 || tiempoPreparacion < 0 || intervaloDespacho < 0) {
             throw new SucursalException("Error al crear sucursal: tiempo negativo");
+        }
+    }
+
+    @Override
+    public void run() {
+        while(true){
+            procesarEntrada();
+            procesarTraspaso();
+            procesarSalida();
+        }
+    }
+
+    private void procesarEntrada() {
+        if (colaRecepcion.getSize() > 0) {
+            Producto p = colaRecepcion.quitar();
+            p.setEstado(Estado.EN_TRANSITO);
+            sleep(tiempoIngreso);
+
+            if (p.esDestinoFinal()) {
+                p.setEstado(Estado.DISPONIBLE);
+                System.out.println("Producto llegó a destino");
+            } else {
+                colaTraspaso.insertar(p);
+            }
+        }
+    }
+
+    private void procesarTraspaso() {
+        if (colaTraspaso.getSize() > 0) {
+            Producto p = colaTraspaso.quitar();
+
+            sleep(tiempoPreparacion);
+
+            colaEnvio.insertar(p);
+        }
+    }
+
+    private void procesarSalida() {
+        if (colaEnvio.getSize() > 0) {
+            Producto p = colaEnvio.quitar();
+
+            sleep(intervaloDespacho);
+
+            Sucursal siguiente = p.siguiente();
+            p.avanzar();
+
+            siguiente.getColaRecepcion().insertar(p);
+        }
+    }
+
+    private void sleep(int segundos) {
+        try {
+            Thread.sleep(segundos * 1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

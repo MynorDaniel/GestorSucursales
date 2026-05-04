@@ -3,6 +3,10 @@ package com.mycompany.gestorsucursales.edd.avl;
 import com.mycompany.gestorsucursales.edd.listas.ListaEnlazadaDesordenada;
 import com.mycompany.gestorsucursales.modelos.Producto;
 
+/**
+ *
+ * @author mynordma
+ */
 public class ArbolAVL {
 
     private NodoAVL raiz;
